@@ -30,25 +30,24 @@ import com.vdenotaris.spring.boot.security.saml.web.core.CurrentUserHandlerMetho
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
 
-	@Autowired
-	CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
-	
+    @Autowired
+    CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("pages/index");
     }
-    
-	@Override
-	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		if (!registry.hasMappingForPattern("/static/**")) {
-			registry.addResourceHandler("/static/**")
-					.addResourceLocations("/static/");
-		}
-	}
-    
+
     @Override
-    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers){
-    		argumentResolvers.add(currentUserHandlerMethodArgumentResolver);
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        if (!registry.hasMappingForPattern("/static/**")) {
+            registry.addResourceHandler("/static/**").addResourceLocations("/static/");
+        }
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        argumentResolvers.add(currentUserHandlerMethodArgumentResolver);
     }
 
 }

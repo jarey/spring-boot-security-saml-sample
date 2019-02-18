@@ -151,6 +151,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements I
         return httpClient;
     }
 
+    @Bean
+    public HttpClient httpClientWithoutProxy() {
+        return new HttpClient(this.multiThreadedHttpConnectionManager);
+    }
+
     // SAML Authentication Provider responsible for validating of received SAML
     // messages
     @Bean
@@ -282,6 +287,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements I
         return extendedMetadataDelegate;
     }
 
+    @Bean
+    @Qualifier("idp-openam")
+    public ExtendedMetadataDelegate openAmExtendedMetadataProvider() throws MetadataProviderException {
+        String idpSSOCircleMetadataURL = "http://openam.example.com:8080/openam/saml2/jsp/exportmetadata.jsp";
+
+        HTTPMetadataProvider httpMetadataProvider =
+                new HTTPMetadataProvider(this.backgroundTaskTimer, httpClientWithoutProxy(), idpSSOCircleMetadataURL);
+        httpMetadataProvider.setParserPool(parserPool());
+        ExtendedMetadataDelegate extendedMetadataDelegate =
+                new ExtendedMetadataDelegate(httpMetadataProvider, extendedMetadata());
+        extendedMetadataDelegate.setMetadataTrustCheck(true);
+        extendedMetadataDelegate.setMetadataRequireSignature(false);
+        backgroundTaskTimer.purge();
+        return extendedMetadataDelegate;
+    }
+
     // IDP Metadata configuration - paths to metadata of IDPs in circle of trust
     // is here
     // Do no forget to call iniitalize method on providers
@@ -291,7 +312,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements I
         List<MetadataProvider> providers = new ArrayList<MetadataProvider>();
         providers.add(ssoCircleExtendedMetadataProvider());
         // Aquí habría que incluir el provider de openam
-        // providers.add(openAmExtendedMetadataProvider())
+        providers.add(openAmExtendedMetadataProvider());
         return new CachingMetadataManager(providers);
     }
 
